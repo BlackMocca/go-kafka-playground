@@ -5,7 +5,7 @@ import (
 )
 
 type User struct {
-	TableName struct{} `pg:"users"`
+	TableName struct{} `json:"-" pg:"users"`
 
 	ID        int         `json:"id" pg:"id"`
 	Email     string      `json:"email" pg:"email"`

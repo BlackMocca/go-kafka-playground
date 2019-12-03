@@ -33,6 +33,21 @@ services:
       - POSTGRES_DB_PROD=app_example
       - POSTGRES_DB_TEST=app_example_test
 
+  mongo_db:
+    build:
+      dockerfile: ./Dockerfile
+      context: ./docker-script/mongodb
+    container_name: mongo_db
+    networks:
+      - dbservice
+    ports:
+      - 27017:27017
+    environment:
+      - MONGO_USER=mongo
+      - MONGO_PASSWORD=mongo
+      - MONGO_PROD=app_example
+    restart: always
+
   adminer:
     image: adminer
     restart: always
