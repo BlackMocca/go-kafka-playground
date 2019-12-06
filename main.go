@@ -18,10 +18,15 @@ var (
 )
 
 func init() {
-	Config = _conf.NewConfig()
+	Config = _conf.NewConfigWithService(_conf.NewPsqlConnection(), _conf.NewMongoSession)
+	Config.Kafka = _conf.NewKafkaClient()
 }
 
 func main() {
+	defer Config.PGORM.Close()
+	defer Config.MONGO.Close()
+	defer Config.Kafka.Close()
+
 	e := echo.New()
 	e.GET("/", func(c echo.Context) error {
 		return c.String(http.StatusOK, "Hello, World!")
@@ -44,6 +49,6 @@ func main() {
 
 	_user_handler.NewUserHandler(e, middL, userUs)
 
-	port := ":" + Config.GetEnv("PORT", "3000")
+	port := ":" + _conf.GetEnv("PORT", "3000")
 	e.Logger.Fatal(e.Start(port))
 }

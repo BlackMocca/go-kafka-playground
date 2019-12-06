@@ -1,6 +1,17 @@
 FROM golang:1.13-rc-alpine AS builder
 
-RUN apk update && apk add --no-cache git ca-certificates tzdata && update-ca-certificates
+RUN apk update && apk add --update alpine-sdk && apk add --no-cache git ca-certificates tzdata && update-ca-certificates 
+
+## Install librdkafka
+RUN apk add --no-cache pkgconfig
+RUN apk add --no-cache bash
+RUN wget github.com/edenhill/librdkafka/archive/v1.3.0.tar.gz \
+    && tar xf v1.3.0.tar.gz \
+    && cd librdkafka-1.3.0 \
+    && ./configure --prefix /usr \
+    && make && make install \
+    && rm -f v1.3.0.tar.gz \
+    && rm -f librdkafka-1.3.0
  
 ENV GO111MODULE=on
 ENV TZ=Asia/Bangkok
