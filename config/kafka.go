@@ -12,7 +12,7 @@ var (
 	determine = ","
 )
 
-func initConfig() *sarama.Config {
+func initDefaultConfig() *sarama.Config {
 	return sarama.NewConfig()
 }
 
@@ -59,7 +59,7 @@ func NewBroker(url string) {
 
 func NewKafkaClient() (sarama.Client, sarama.Client) {
 	producers, consumers := GetBrokersURLFromENV()
-	config := initConfig()
+	config := initDefaultConfig()
 
 	log.Println("kafka producers url are", producers)
 	clientProducer, err := sarama.NewClient(producers, config)

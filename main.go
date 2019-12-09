@@ -32,7 +32,7 @@ func init() {
 }
 
 func main() {
-	KafkaProducer = config.NewKafkaProducer(Config.KafkaProducerClient)
+	KafkaProducer = config.NewKafkaSyncProducer(Config.KafkaProducerClient)
 	KafkaConsumer = config.NewKafkaConsumer(Config.KafkaConsumerClient)
 
 	defer Config.PGORM.Close()

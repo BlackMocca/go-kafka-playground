@@ -7,20 +7,40 @@ import (
 )
 
 type KafkaProducer struct {
-	producer sarama.AsyncProducer
+	syncProducer  sarama.SyncProducer
+	asyncProducer sarama.AsyncProducer
 }
 
-func NewKafkaProducer(client sarama.Client) *KafkaProducer {
+func settingSyncProducerConfig(config *sarama.Config) {
+	config.Producer.Partitioner = sarama.NewRandomPartitioner
+	config.Producer.RequiredAcks = sarama.WaitForAll
+	config.Producer.Return.Successes = true
+}
+
+func NewKafkaSyncProducer(client sarama.Client) *KafkaProducer {
+	settingSyncProducerConfig(client.Config())
+
+	producerInf, err := sarama.NewSyncProducerFromClient(client)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return &KafkaProducer{
+		syncProducer: producerInf,
+	}
+}
+
+func NewKafkaASyncProducer(client sarama.Client) *KafkaProducer {
 	producerInf, err := sarama.NewAsyncProducerFromClient(client)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	return &KafkaProducer{
-		producer: producerInf,
+		asyncProducer: producerInf,
 	}
 }
 
-func (k KafkaProducer) GetProducer() sarama.AsyncProducer {
-	return k.producer
+func (k KafkaProducer) GetSyncProducer() sarama.SyncProducer {
+	return k.syncProducer
 }
