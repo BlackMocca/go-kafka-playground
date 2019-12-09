@@ -8,6 +8,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"gitlab.com/km/go-kafka-playground/middleware"
 	"gitlab.com/km/go-kafka-playground/models"
+	"gitlab.com/km/go-kafka-playground/service/kafka"
 	"gitlab.com/km/go-kafka-playground/service/user"
 )
 
@@ -15,7 +16,7 @@ type userHandler struct {
 	userUs user.UserUsecaseInf
 }
 
-func NewUserHandler(e *echo.Echo, middL *middleware.GoMiddleware, us user.UserUsecaseInf) {
+func NewUserHandler(e *echo.Echo, middL *middleware.GoMiddleware, us user.UserUsecaseInf, kafka kafka.KafkaUsecase) {
 	handler := &userHandler{
 		userUs: us,
 	}
