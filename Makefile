@@ -41,5 +41,5 @@ app.migration.down:
 	docker exec -it $(app_name) migrate -database "$(db_url)" -path database/migrations down
 
 
-docker.env:
+kafka.env:
 	echo "MACHINE_HOST="$$(ipconfig getifaddr en0) > .kafka.env

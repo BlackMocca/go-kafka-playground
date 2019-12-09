@@ -11,9 +11,10 @@ import (
 )
 
 type Config struct {
-	PGORM *pg.DB
-	MONGO *mgo.Session
-	Kafka sarama.Client
+	PGORM               *pg.DB
+	MONGO               *mgo.Session
+	KafkaProducerClient sarama.Client
+	KafkaConsumerClient sarama.Client
 }
 
 func init() {
