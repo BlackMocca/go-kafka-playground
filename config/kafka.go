@@ -9,6 +9,45 @@ import (
 )
 
 var (
+	USER_CREATE = "user-create"
+	USER_UPDATE = "user-update"
+	USER_DELETE = "user-delete"
+
+	Topics = []string{
+		USER_CREATE,
+		USER_UPDATE,
+		USER_DELETE,
+	}
+	TOPIC_DETERMINE = "-"
+)
+
+var (
+	MODELUSER    = 0
+	ACTIONCREATE = 0
+	ACTIONUPDATE = 1
+	ACTIONDELETE = 2
+
+	MODEL = func(model string) int {
+		switch model {
+		case "user":
+			return 0
+		}
+		return -1
+	}
+	ACTION = func(action string) int {
+		switch action {
+		case "create":
+			return 0
+		case "update":
+			return 1
+		case "delete":
+			return 2
+		}
+		return -1
+	}
+)
+
+var (
 	determine = ","
 )
 

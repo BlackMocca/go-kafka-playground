@@ -6,10 +6,10 @@ import (
 )
 
 type kafkaConsumerRepository struct {
-	customConsumer *config.KafkaConsumer
+	customConsumer *config.KafkaConsumerGroup
 }
 
-func NewKafkaConsumerRepository(producer *config.KafkaConsumer) kafka.KafkaConsumerRepository {
+func NewKafkaConsumerRepository(producer *config.KafkaConsumerGroup) kafka.KafkaConsumerRepository {
 	return &kafkaConsumerRepository{
 		customConsumer: producer,
 	}

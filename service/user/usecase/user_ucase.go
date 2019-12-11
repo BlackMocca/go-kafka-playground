@@ -3,6 +3,7 @@ package usecase
 import (
 	"strconv"
 
+	"gitlab.com/km/go-kafka-playground/config"
 	"gitlab.com/km/go-kafka-playground/models"
 	"gitlab.com/km/go-kafka-playground/service/kafka"
 	"gitlab.com/km/go-kafka-playground/service/user"
@@ -23,7 +24,7 @@ func NewUserUsecase(uRepo user.PsqlUserRepositoryInf, mRepo user.MongoUserReposi
 }
 
 func (u *userUsecase) InvokeCreateEvent(user *models.User) (int32, int64, error) {
-	topic := models.TopicUser
+	topic := config.USER_CREATE
 	message := strconv.Itoa(user.ID)
 	partition, offset, err := u.kafkaUs.SendMessage(topic, message)
 	if err != nil {
