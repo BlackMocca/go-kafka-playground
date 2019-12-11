@@ -53,6 +53,14 @@ services:
     networks: 
       - kafkaservice
 
+  zookeeper-2:
+    image: wurstmeister/zookeeper:3.4.6
+    container_name: zookeeper-2
+    ports: 
+      - "2182:2181"
+    networks: 
+      - kafkaservice
+
   producer-1:
     image: wurstmeister/kafka:2.12-2.3.0
     container_name: producer-1
@@ -69,7 +77,7 @@ services:
       KAFKA_ADVERTISED_PORT: 9092
       KAFKA_ADVERTISED_HOST_NAME: _{HOSTNAME_COMMAND}
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://_{HOSTNAME_COMMAND}:9092
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper-1:2181
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper-1:2181,zookeeper-2:2182
       KAFKA_CREATE_TOPICS: "myTopic:1:1"
     volumes:
       - ./.kafka.env:/.kafka.env
@@ -91,7 +99,7 @@ services:
       KAFKA_ADVERTISED_PORT: 9093
       KAFKA_ADVERTISED_HOST_NAME: _{HOSTNAME_COMMAND}
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://_{HOSTNAME_COMMAND}:9093,
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper-1:2181
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper-1:2181,zookeeper-2:2182
       KAFKA_CREATE_TOPICS: "myTopic:1:1"
     volumes:
       - ./.kafka.env:/.kafka.env
@@ -113,7 +121,7 @@ services:
       KAFKA_ADVERTISED_PORT: 9094
       KAFKA_ADVERTISED_HOST_NAME: _{HOSTNAME_COMMAND}
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://_{HOSTNAME_COMMAND}:9094,
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper-1:2181
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper-1:2181,zookeeper-2:2182
       KAFKA_CREATE_TOPICS: "myTopic:1:1"
     volumes:
       - ./.kafka.env:/.kafka.env
@@ -135,11 +143,24 @@ services:
       KAFKA_ADVERTISED_PORT: 9095
       KAFKA_ADVERTISED_HOST_NAME: _{HOSTNAME_COMMAND}
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://_{HOSTNAME_COMMAND}:9095,
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper-1:2181
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper-1:2181,zookeeper-2:2182
       KAFKA_CREATE_TOPICS: "myTopic:1:1"
     volumes:
       - ./.kafka.env:/.kafka.env
       - /var/run/docker.sock:/var/run/docker.sock
+
+  kafka-admin:
+    image: sheepkiller/kafka-manager
+    container_name: kafka-admin
+    networks: 
+      - kafkaservice
+    depends_on:
+      - zookeeper-1
+    ports: 
+      - 9000:9000
+    environment:
+      ZK_HOSTS: zookeeper-1:2181
+    restart: always
 
 
   adminer:
