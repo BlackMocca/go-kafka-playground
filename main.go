@@ -44,20 +44,24 @@ func createTopic(topic string) {
 	// KafkaConsumer.Subscribe(topic)
 }
 
+func initConsumerGroup() {
+	KafkaConsumerGroup = _conf.NewKafkaConsumerGroupFromClient("myGroup", Config.KafkaConsumerClient)
+	ctx := context.Background()
+	topics := _conf.Topics
+	go func(kafkaConsumerGroup *_conf.KafkaConsumerGroup) {
+		if err := kafkaConsumerGroup.GetConsumerGroup().Consume(ctx, topics, KafkaConsumerGroup); err != nil {
+			log.Fatal(err)
+		}
+	}(KafkaConsumerGroup)
+}
+
 func main() {
 	KafkaProducer = config.NewKafkaSyncProducer(Config.KafkaProducerClient)
 	// KafkaConsumer = config.NewKafkaConsumer(Config.KafkaConsumerClient)
 
 	KafkaProducer.SetingAsyncProducer(Config.KafkaProducerClient)
 
-	KafkaConsumerGroup = _conf.NewKafkaConsumerGroupFromClient("myGroup", Config.KafkaConsumerClient)
-	ctx := context.Background()
-	topics := []string{"users"}
-	go func(kafkaConsumerGroup *_conf.KafkaConsumerGroup) {
-		if err := kafkaConsumerGroup.GetConsumerGroup().Consume(ctx, topics, KafkaConsumerGroup); err != nil {
-			log.Fatal(err)
-		}
-	}(KafkaConsumerGroup)
+	initConsumerGroup()
 
 	defer Config.PGORM.Close()
 	defer Config.MONGO.Close()

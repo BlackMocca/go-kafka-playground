@@ -9,6 +9,14 @@ import (
 )
 
 var (
+	Topics = []string{
+		"user_create",
+		"user_update",
+		"user_delete",
+	}
+)
+
+var (
 	determine = ","
 )
 
