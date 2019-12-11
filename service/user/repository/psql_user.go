@@ -16,6 +16,15 @@ func NewPsqlUserRepository(dbcon *pg.DB) user.PsqlUserRepositoryInf {
 	}
 }
 
+func (p *psqlUserRepository) FetchOne(id int) (*models.User, error) {
+	user := &models.User{}
+	err := p.db.Model(user).Where("id = ?", id).First()
+	if err != nil {
+		return nil, err
+	}
+	return user, nil
+}
+
 func (p *psqlUserRepository) Create(user *models.User) error {
 	return p.db.Insert(user)
 }

@@ -15,6 +15,7 @@ import (
 	_user_repository "gitlab.com/km/go-kafka-playground/service/user/repository"
 	_user_usecase "gitlab.com/km/go-kafka-playground/service/user/usecase"
 
+	_kafka_handler "gitlab.com/km/go-kafka-playground/service/kafka/http"
 	_kafka_repository "gitlab.com/km/go-kafka-playground/service/kafka/repository"
 	_kafka_usecase "gitlab.com/km/go-kafka-playground/service/kafka/usecase"
 )
@@ -30,7 +31,7 @@ var (
 )
 
 func init() {
-	Config = _conf.NewConfigWithService(_conf.NewPsqlConnection(), _conf.NewMongoSession)
+	Config = _conf.NewConfigWithService(_conf.NewPsqlConnection(), _conf.NewMongoSession())
 	KafkaProducerClient, KafkaConsumerClient = _conf.NewKafkaClient()
 	Config.KafkaProducerClient = KafkaConsumerClient
 	Config.KafkaConsumerClient = KafkaConsumerClient
@@ -54,7 +55,7 @@ func main() {
 	defer KafkaProducer.GetAsyncProducer().Close()
 
 	/* create topic each patition */
-	createTopic("user")
+	createTopic("users")
 
 	e := echo.New()
 	e.GET("/", func(c echo.Context) error {
@@ -69,17 +70,19 @@ func main() {
 	/* Inject Repository */
 
 	userRepo := _user_repository.NewPsqlUserRepository(Config.PGORM)
+	userMongoRepo := _user_repository.NewMongoUserRepository(Config.MONGO, _conf.DB_APPEXAMPLE)
 	kafkaProRepo := _kafka_repository.NewKafkaProducerRepository(KafkaProducer)
 	kafkaConRepo := _kafka_repository.NewKafkaConsumerRepository(KafkaConsumer)
 
 	/* Inject Usecase */
 
-	userUs := _user_usecase.NewUserUsecase(userRepo)
 	kafkaUs := _kafka_usecase.NewKafkaUsecase(kafkaProRepo, kafkaConRepo)
+	userUs := _user_usecase.NewUserUsecase(userRepo, userMongoRepo, kafkaUs)
 
 	/* Inject Handler */
 
-	_user_handler.NewUserHandler(e, middL, userUs, kafkaUs)
+	_user_handler.NewUserHandler(e, middL, userUs)
+	_kafka_handler.NewKafkaHandler(e, middL, userUs)
 
 	port := ":" + _conf.GetEnv("PORT", "3000")
 	e.Logger.Fatal(e.Start(port))

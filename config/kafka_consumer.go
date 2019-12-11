@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/Shopify/sarama"
+	helperReq "gitlab.com/km/go-kafka-playground/helper/request"
 )
 
 type KafkaConsumer struct {
@@ -55,4 +56,14 @@ func (k KafkaConsumer) Subscribe(topic string) {
 
 func messageReceived(message *sarama.ConsumerMessage) {
 	log.Println("message receive ", (string(message.Value)))
+	userId := string(message.Value)
+	url := "http://127.0.0.1:3000/kafka/users/" + userId
+	log.Println(url)
+
+	data, err := helperReq.RequestGET(url, nil, nil)
+	if err != nil {
+		log.Fatal("req error ", err)
+	}
+
+	log.Println(data)
 }

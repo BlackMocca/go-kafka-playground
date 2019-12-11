@@ -15,3 +15,12 @@ func NewKafkaUsecase(producer kafka.KafkaProducerRepository, consumer kafka.Kafk
 		consumerRepo: consumer,
 	}
 }
+
+func (k *kafkaUsecase) SendMessage(topic, message string) (int32, int64, error) {
+	msg := k.producerRepo.PrepareMessage(topic, message)
+	partition, offset, err := k.producerRepo.SendOneMessageWithSync(msg)
+	if err != nil {
+		return partition, offset, err
+	}
+	return partition, offset, nil
+}

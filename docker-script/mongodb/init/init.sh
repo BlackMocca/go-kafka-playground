@@ -15,8 +15,8 @@ create_user() {
      use admin;
      db.createUser(
         {
-          user: "mongo",
-          pwd: "mongo",
+          user: "mongoadmin",
+          pwd: "mongoadmin",
            roles: [ 
               { role: "userAdminAnyDatabase", db: "admin" }, 
               { role: "dbAdminAnyDatabase", db: "admin" }, 
@@ -28,17 +28,18 @@ EOF
 }
 
 create_databases() {
-  mongo --port 27017 -u amic -p amic --authenticationDatabase admin <<EOF
+  mongo --port 27017 -u mongoadmin -p mongoadmin --authenticationDatabase admin <<EOF
       use app_example;
       db.createUser(
         {
-          user: "mongo",
-          pwd: "mongo",
+          user: "mongoadmin",
+          pwd: "mongoadmin",
            roles: [ 
               { role: "readWrite", db: "app_example" } 
-            ]
+           ]
         }
       );
+      db.test.insertOne( { hello: "world" } );
 EOF
 }
 

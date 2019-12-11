@@ -43,10 +43,6 @@ services:
       - dbservice
     ports:
       - 27017:27017
-    environment:
-      - MONGO_USER=mongo
-      - MONGO_PASSWORD=mongo
-      - MONGO_PROD=app_example
     restart: always
 
   zookeeper-1:
