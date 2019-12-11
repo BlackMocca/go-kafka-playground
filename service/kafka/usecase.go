@@ -5,4 +5,5 @@ type KafkaUsecase interface {
 }
 
 type KafkaEventUsecase interface {
+	CreateUserIntoMongo(id int) error
 }

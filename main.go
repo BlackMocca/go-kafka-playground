@@ -51,12 +51,15 @@ func main() {
 
 	KafkaProducer.SetingAsyncProducer(Config.KafkaProducerClient)
 
+	KafkaConsumerGroup = _conf.NewKafkaConsumerGroupFromClient("myGroup", Config.KafkaConsumerClient)
+
 	defer Config.PGORM.Close()
 	defer Config.MONGO.Close()
 	defer Config.KafkaProducerClient.Close()
 	// defer Config.KafkaConsumerClient.Close()
 	defer KafkaProducer.GetSyncProducer().Close()
 	defer KafkaProducer.GetAsyncProducer().Close()
+	defer KafkaConsumerGroup.GetConsumerGroup().Close()
 
 	/* create topic each patition */
 	// createTopic("users")
@@ -87,19 +90,19 @@ func main() {
 
 	/* Inject Handler */
 
-	kafkaEventHandler := _kafka_event_handler.NewKafkaEventHandler(kafkaEventUs)
-	settingConsumerGroupHandler(kafkaEventHandler)
-	defer KafkaConsumerGroup.GetConsumerGroup().Close()
-
 	_user_handler.NewUserHandler(e, middL, userUs)
 	_kafka_handler.NewKafkaHandler(e, middL, userUs)
 
+	/* Init Consumer event handler */
+	kafkaEventHandler := _kafka_event_handler.NewKafkaEventHandler(KafkaConsumerGroup.GetConsumerGroup(), kafkaEventUs)
+	settingConsumerGroupHandler(kafkaEventHandler)
+
+	/* Running web service */
 	port := ":" + _conf.GetEnv("PORT", "3000")
 	e.Logger.Fatal(e.Start(port))
 }
 
 func settingConsumerGroupHandler(handlerGroup sarama.ConsumerGroupHandler) {
-	KafkaConsumerGroup = _conf.NewKafkaConsumerGroupFromClient("myGroup", Config.KafkaConsumerClient)
 	ctx := context.Background()
 	topics := _conf.Topics
 	go func(kafkaConsumerGroup *_conf.KafkaConsumerGroup) {

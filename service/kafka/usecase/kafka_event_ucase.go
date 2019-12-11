@@ -14,3 +14,15 @@ func NewKafkaEventUsecase(us user.UserUsecaseInf) kafka.KafkaEventUsecase {
 		userUs: us,
 	}
 }
+
+func (k kafkaEventUsecase) CreateUserIntoMongo(id int) error {
+	user, err := k.userUs.FetchOne(id)
+	if err != nil {
+		return err
+	}
+
+	if err = k.userUs.CreateIntoMongoDB(user); err != nil {
+		return err
+	}
+	return nil
+}
