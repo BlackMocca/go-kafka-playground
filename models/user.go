@@ -5,10 +5,6 @@ import (
 	"time"
 )
 
-var (
-	TopicUser = "users"
-)
-
 type User struct {
 	TableName struct{} `json:"-" pg:"users" bson:"-"`
 

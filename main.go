@@ -17,6 +17,7 @@ import (
 	_user_repository "gitlab.com/km/go-kafka-playground/service/user/repository"
 	_user_usecase "gitlab.com/km/go-kafka-playground/service/user/usecase"
 
+	_kafka_event_handler "gitlab.com/km/go-kafka-playground/service/kafka/event_handler"
 	_kafka_handler "gitlab.com/km/go-kafka-playground/service/kafka/http"
 	_kafka_repository "gitlab.com/km/go-kafka-playground/service/kafka/repository"
 	_kafka_usecase "gitlab.com/km/go-kafka-playground/service/kafka/usecase"
@@ -44,24 +45,11 @@ func createTopic(topic string) {
 	// KafkaConsumer.Subscribe(topic)
 }
 
-func initConsumerGroup() {
-	KafkaConsumerGroup = _conf.NewKafkaConsumerGroupFromClient("myGroup", Config.KafkaConsumerClient)
-	ctx := context.Background()
-	topics := _conf.Topics
-	go func(kafkaConsumerGroup *_conf.KafkaConsumerGroup) {
-		if err := kafkaConsumerGroup.GetConsumerGroup().Consume(ctx, topics, KafkaConsumerGroup); err != nil {
-			log.Fatal(err)
-		}
-	}(KafkaConsumerGroup)
-}
-
 func main() {
 	KafkaProducer = config.NewKafkaSyncProducer(Config.KafkaProducerClient)
 	// KafkaConsumer = config.NewKafkaConsumer(Config.KafkaConsumerClient)
 
 	KafkaProducer.SetingAsyncProducer(Config.KafkaProducerClient)
-
-	initConsumerGroup()
 
 	defer Config.PGORM.Close()
 	defer Config.MONGO.Close()
@@ -69,7 +57,6 @@ func main() {
 	// defer Config.KafkaConsumerClient.Close()
 	defer KafkaProducer.GetSyncProducer().Close()
 	defer KafkaProducer.GetAsyncProducer().Close()
-	defer KafkaConsumerGroup.GetConsumerGroup().Close()
 
 	/* create topic each patition */
 	// createTopic("users")
@@ -96,11 +83,28 @@ func main() {
 	kafkaUs := _kafka_usecase.NewKafkaUsecase(kafkaProRepo, kafkaConRepo)
 	userUs := _user_usecase.NewUserUsecase(userRepo, userMongoRepo, kafkaUs)
 
+	kafkaEventUs := _kafka_usecase.NewKafkaEventUsecase(userUs)
+
 	/* Inject Handler */
+
+	kafkaEventHandler := _kafka_event_handler.NewKafkaEventHandler(kafkaEventUs)
+	settingConsumerGroupHandler(kafkaEventHandler)
+	defer KafkaConsumerGroup.GetConsumerGroup().Close()
 
 	_user_handler.NewUserHandler(e, middL, userUs)
 	_kafka_handler.NewKafkaHandler(e, middL, userUs)
 
 	port := ":" + _conf.GetEnv("PORT", "3000")
 	e.Logger.Fatal(e.Start(port))
+}
+
+func settingConsumerGroupHandler(handlerGroup sarama.ConsumerGroupHandler) {
+	KafkaConsumerGroup = _conf.NewKafkaConsumerGroupFromClient("myGroup", Config.KafkaConsumerClient)
+	ctx := context.Background()
+	topics := _conf.Topics
+	go func(kafkaConsumerGroup *_conf.KafkaConsumerGroup) {
+		if err := kafkaConsumerGroup.GetConsumerGroup().Consume(ctx, topics, handlerGroup); err != nil {
+			log.Fatal(err)
+		}
+	}(KafkaConsumerGroup)
 }

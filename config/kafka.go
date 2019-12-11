@@ -9,10 +9,14 @@ import (
 )
 
 var (
+	USER_CREATE = "user_create"
+	USER_UPDATE = "user_update"
+	USER_DELETE = "user_delete"
+
 	Topics = []string{
-		"user_create",
-		"user_update",
-		"user_delete",
+		USER_CREATE,
+		USER_UPDATE,
+		USER_DELETE,
 	}
 )
 
