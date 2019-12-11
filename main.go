@@ -18,7 +18,6 @@ import (
 	_user_usecase "gitlab.com/km/go-kafka-playground/service/user/usecase"
 
 	_kafka_event_handler "gitlab.com/km/go-kafka-playground/service/kafka/event_handler"
-	_kafka_handler "gitlab.com/km/go-kafka-playground/service/kafka/http"
 	_kafka_repository "gitlab.com/km/go-kafka-playground/service/kafka/repository"
 	_kafka_usecase "gitlab.com/km/go-kafka-playground/service/kafka/usecase"
 )
@@ -28,8 +27,7 @@ var (
 	KafkaProducerClient sarama.Client
 	KafkaConsumerClient sarama.Client
 	KafkaProducer       *_conf.KafkaProducer
-	// KafkaConsumer       *_conf.KafkaConsumer
-	KafkaConsumerGroup *_conf.KafkaConsumerGroup
+	KafkaConsumerGroup  *_conf.KafkaConsumerGroup
 
 	KafkaProducerAsync *_conf.KafkaProducer
 )
@@ -41,13 +39,8 @@ func init() {
 	Config.KafkaConsumerClient = KafkaConsumerClient
 }
 
-func createTopic(topic string) {
-	// KafkaConsumer.Subscribe(topic)
-}
-
 func main() {
 	KafkaProducer = config.NewKafkaSyncProducer(Config.KafkaProducerClient)
-	// KafkaConsumer = config.NewKafkaConsumer(Config.KafkaConsumerClient)
 
 	KafkaProducer.SetingAsyncProducer(Config.KafkaProducerClient)
 
@@ -56,13 +49,9 @@ func main() {
 	defer Config.PGORM.Close()
 	defer Config.MONGO.Close()
 	defer Config.KafkaProducerClient.Close()
-	// defer Config.KafkaConsumerClient.Close()
 	defer KafkaProducer.GetSyncProducer().Close()
 	defer KafkaProducer.GetAsyncProducer().Close()
 	defer KafkaConsumerGroup.GetConsumerGroup().Close()
-
-	/* create topic each patition */
-	// createTopic("users")
 
 	e := echo.New()
 	e.GET("/", func(c echo.Context) error {
@@ -91,7 +80,6 @@ func main() {
 	/* Inject Handler */
 
 	_user_handler.NewUserHandler(e, middL, userUs)
-	_kafka_handler.NewKafkaHandler(e, middL, userUs)
 
 	/* Init Consumer event handler */
 	kafkaEventHandler := _kafka_event_handler.NewKafkaEventHandler(KafkaConsumerGroup.GetConsumerGroup(), kafkaEventUs)

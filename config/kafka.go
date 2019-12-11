@@ -22,6 +22,11 @@ var (
 )
 
 var (
+	MODELUSER    = 0
+	ACTIONCREATE = 0
+	ACTIONUPDATE = 1
+	ACTIONDELETE = 2
+
 	MODEL = func(model string) int {
 		switch model {
 		case "user":

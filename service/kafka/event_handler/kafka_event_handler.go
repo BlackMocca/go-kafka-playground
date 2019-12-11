@@ -39,10 +39,16 @@ func (k KafkaEventHandler) ConsumeClaim(sess sarama.ConsumerGroupSession, claim 
 		model, action := k.getActionFromTopic(msg.Topic)
 
 		switch model {
-		case 0:
+		case config.MODELUSER:
 			switch action {
-			case 0:
+			case config.ACTIONCREATE:
 				k.eventUserCreateHandler(sess, msg)
+				sess.MarkMessage(msg, "")
+			case config.ACTIONUPDATE:
+				k.eventUserUpdateHandler(sess, msg)
+				sess.MarkMessage(msg, "")
+			case config.ACTIONDELETE:
+				k.eventUserDeleteHandler(sess, msg)
 				sess.MarkMessage(msg, "")
 			}
 		default:
@@ -61,5 +67,13 @@ func (k KafkaEventHandler) eventUserCreateHandler(sess sarama.ConsumerGroupSessi
 		return err
 	}
 
+	return nil
+}
+
+func (k KafkaEventHandler) eventUserUpdateHandler(sess sarama.ConsumerGroupSession, message *sarama.ConsumerMessage) error {
+	return nil
+}
+
+func (k KafkaEventHandler) eventUserDeleteHandler(sess sarama.ConsumerGroupSession, message *sarama.ConsumerMessage) error {
 	return nil
 }
