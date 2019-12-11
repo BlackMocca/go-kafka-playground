@@ -1,6 +1,8 @@
 package main
 
 import (
+	"context"
+	"log"
 	"net/http"
 
 	"github.com/Shopify/sarama"
@@ -25,7 +27,8 @@ var (
 	KafkaProducerClient sarama.Client
 	KafkaConsumerClient sarama.Client
 	KafkaProducer       *_conf.KafkaProducer
-	KafkaConsumer       *_conf.KafkaConsumer
+	// KafkaConsumer       *_conf.KafkaConsumer
+	KafkaConsumerGroup *_conf.KafkaConsumerGroup
 
 	KafkaProducerAsync *_conf.KafkaProducer
 )
@@ -33,29 +36,39 @@ var (
 func init() {
 	Config = _conf.NewConfigWithService(_conf.NewPsqlConnection(), _conf.NewMongoSession())
 	KafkaProducerClient, KafkaConsumerClient = _conf.NewKafkaClient()
-	Config.KafkaProducerClient = KafkaConsumerClient
+	Config.KafkaProducerClient = KafkaProducerClient
 	Config.KafkaConsumerClient = KafkaConsumerClient
 }
 
 func createTopic(topic string) {
-	KafkaConsumer.Subscribe(topic)
+	// KafkaConsumer.Subscribe(topic)
 }
 
 func main() {
 	KafkaProducer = config.NewKafkaSyncProducer(Config.KafkaProducerClient)
-	KafkaConsumer = config.NewKafkaConsumer(Config.KafkaConsumerClient)
+	// KafkaConsumer = config.NewKafkaConsumer(Config.KafkaConsumerClient)
 
 	KafkaProducer.SetingAsyncProducer(Config.KafkaProducerClient)
+
+	KafkaConsumerGroup = _conf.NewKafkaConsumerGroupFromClient("myGroup", Config.KafkaConsumerClient)
+	ctx := context.Background()
+	topics := []string{"users"}
+	go func(kafkaConsumerGroup *_conf.KafkaConsumerGroup) {
+		if err := kafkaConsumerGroup.GetConsumerGroup().Consume(ctx, topics, KafkaConsumerGroup); err != nil {
+			log.Fatal(err)
+		}
+	}(KafkaConsumerGroup)
 
 	defer Config.PGORM.Close()
 	defer Config.MONGO.Close()
 	defer Config.KafkaProducerClient.Close()
-	defer Config.KafkaConsumerClient.Close()
+	// defer Config.KafkaConsumerClient.Close()
 	defer KafkaProducer.GetSyncProducer().Close()
 	defer KafkaProducer.GetAsyncProducer().Close()
+	defer KafkaConsumerGroup.GetConsumerGroup().Close()
 
 	/* create topic each patition */
-	createTopic("users")
+	// createTopic("users")
 
 	e := echo.New()
 	e.GET("/", func(c echo.Context) error {
@@ -72,7 +85,7 @@ func main() {
 	userRepo := _user_repository.NewPsqlUserRepository(Config.PGORM)
 	userMongoRepo := _user_repository.NewMongoUserRepository(Config.MONGO, _conf.DB_APPEXAMPLE)
 	kafkaProRepo := _kafka_repository.NewKafkaProducerRepository(KafkaProducer)
-	kafkaConRepo := _kafka_repository.NewKafkaConsumerRepository(KafkaConsumer)
+	kafkaConRepo := _kafka_repository.NewKafkaConsumerRepository(KafkaConsumerGroup)
 
 	/* Inject Usecase */
 

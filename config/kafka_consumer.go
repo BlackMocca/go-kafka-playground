@@ -47,9 +47,10 @@ func (k KafkaConsumer) Subscribe(topic string) {
 		}
 
 		go func(pc sarama.PartitionConsumer) {
-			for message := range pc.Messages() {
-				messageReceived(message)
-			}
+			// for message := range pc.Messages() {
+			// 	// messageReceived(message)
+			// 	log.Println("one broker in message", message)
+			// }
 		}(pc)
 	}
 }
