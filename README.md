@@ -61,3 +61,4 @@ In this project we use postgres and mongodb. the postgres image will create post
 
 5. **Playing**  <br>
     Open Browser and route to `http://127.0.0.1/users` This route will create user and insert to postgres and invoke kafka message to create in mongodb
+
